@@ -6,6 +6,8 @@ import groundTexture from '../assets/ground.png';
 import { FloatingNumbersPlugin } from "../plugins/FloatingNumbersPlugin";
 import { Enemy } from "./Enemy";
 import { ENV } from "./ENV";
+import { GAMEOBJECTEVENTS } from "./GAMEOBJECTEVENTS";
+import { Mathf } from "./Mathf";
 
 function $log() {
   if (ENV.DEBUG) {
@@ -65,8 +67,7 @@ export default class Enchanter extends Scene {
     this.ground = this.add.tileSprite(0, 0, w, 48, "ground");
     this.ground.setOrigin(0, 0);
     this.ground.setScrollFactor(0);
-    // sinc this tile is shorter I positioned it at the bottom of he screen
-    // this.ground.y = 12 * 16;
+    this.ground.y = 400;
 
     // add player
     // this.bee = this.add.sprite(w * 1.5, h / 2, "bee");
@@ -78,27 +79,21 @@ export default class Enchanter extends Scene {
       frameRate: 20,
       repeat: -1
     });
-    // this.bee.play("fly");
-
-    this.bee = new Enemy("BARRY BEE", "bee", 100, 60, "fly")
-    this.bee.addToScene(this, w * 1.5, h / 2)
 
     // allow key inputs to control the player
     this.cursors = this.input.keyboard.createCursorKeys();
 
     // making the camera follow the player
-    this.cameras.main.startFollow(this.bee.sprite)
     this.cameras.main.roundPixels = true;
 
     window.cam = this.cameras.main;
     this.mainCam = this.cameras.main;
 
+    this.cameras.main.setZoom(2.5);
 
-    this.cameras.main.setZoom(2);
-    this.textElem = this.add.text(10, 10, 'x: 0, y:0', { font: '16px Courier', fill: '#00ff00' });
-
-    this.bee.sprite.on('pointerdown', () => this.handleClick(this.bee, arguments), this)
-    this.gameObjects = [this.bee]
+    this.enemyManager = new EnemyManager(this)
+    this.enemyManager.spawnNextEnemy()
+    this.gameObjects = [...this.enemyManager.enemies]
   }
 
   update() {
@@ -106,9 +101,9 @@ export default class Enchanter extends Scene {
     this.bg_2.tilePositionX = this.mainCam.scrollX * .6;
     this.ground.tilePositionX = this.mainCam.scrollX;
 
-    for (let i = 0; i < this.gameObjects.length; i++) {
+    for (let i = 0; i < this.enemyManager.enemies.length; i++) {
       try {
-        const go = this.gameObjects[i];
+        const go = this.enemyManager.enemies[i];
         if (go.active) {
           go.update()
         }
@@ -117,19 +112,89 @@ export default class Enchanter extends Scene {
 
   }
 
+
+
+}
+var s = 1
+class EnemyManager {
+  /**
+   * @param {Scene} scene
+   * @param {undefined} [enemies]
+   */
+  constructor(scene, enemies) {
+    this.enemies = [
+      new Enemy("BARRY BEE", "bee", 100, 60, "fly"),
+      new Enemy("BARNEY BEE", "bee", 200, 60, "fly"),
+      new Enemy("BETTY BEE", "bee", 300, 60, "fly"),
+      new Enemy("BECKY BEE", "bee", 500, 60, "fly")
+    ]
+    this.scene = scene
+    this.cam = this.scene.cameras.main
+    this.enemies.forEach(enemy => {
+      enemy.on(GAMEOBJECTEVENTS.DESTROYED, () => {
+        this.enemies.splice(this.enemies.indexOf(enemy), 1)
+        this.spawnNextEnemy()
+      })
+    });
+  }
+
+  spawnNextEnemy() {
+    let next = this.enemies[0]
+    if (!next) {
+      this.cam.fade(4500)
+      this.scene.add.text(-100, this.cam.y, "CONGRATS YOU MURDERED SOME BEES")
+      return console.log("YOU WIN!!!")
+    }
+    next.addToScene(this.scene, Mathf.clamp(Math.random() * 100, 10, 600), Mathf.clamp(Math.random() * 2, 10, 800))
+    this.cam.startFollow(next.sprite)
+    next.sprite.on("pointerdown", () => this.handleClick(next))
+    next.sprite.scale = s
+    s++
+  }
+
   /**
    * @param {Enemy} target
-   * @param {IArguments} args
+   * @param {IArguments} [args]
    */
   handleClick(target, args) {
     if (!floatingNumbers) {
       // @ts-ignore
-      floatingNumbers = this.floatingNumbers
+      floatingNumbers = this.scene.floatingNumbers
     }
     if (target instanceof Enemy) {
       target.onDamage()
+      if (target.dead) { return }
+      floatingNumbers.createFloatingText({
+        textOptions: {
+          fontFamily: 'shrewsbury',
+          fontSize: 32,
+          color: "#ff0000",
+          strokeThickness: 2,
+          fontWeight: "bold",
+          stroke: "#000000",
+          shadow: {
+            offsetX: 0,
+            offsetY: 0,
+            color: '#000',
+            blur: 4,
+            stroke: true,
+            fill: false
+          }
+        },
+        text: PLAYER.ATTACKSTRENGTH,
+        align: "top-center",
+        parentObject: target.sprite,
+        animation: "smoke",
+        animationEase: "Linear"
+      });
+      this.scene.mainCam.shake(350, .0015)
+      target.sprite.tint = 0xff0000;
+      target.active = false
+      setTimeout(() => {
+        target.active = true
+        target.sprite.tint = 0xffffff;
+      }, 350)
     }
   }
 
 }
-

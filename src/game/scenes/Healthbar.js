@@ -36,24 +36,24 @@ export class Healthbar extends GameObjects.Graphics {
     this.options = options;
     this.percentage = 1;
     this.updatePosition();
-    this.drawBar();
 
-    this.tweenBar = this.scene.tweens.add({
-      targets: this,
-      x: this.x,
-      y: this.y,
-      paused: false,
-      duration: 10000,
-      repeatDelay: 0
-    });
+    // this.tweenBar = this.scene.tweens.add({
+    //   targets: this,
+    //   x: this.x,
+    //   y: this.y,
+    //   paused: false,
+    //   duration: 10000,
+    //   repeatDelay: 0
+    // });
 
 
     this.text = scene.add.text(this.x + this.width / 2, this.y + this.height, this.options.text, GLOBALSTYLES.font);
     this.text.setFontSize(9);
     this.text.setDepth(1);
 
-    gameObject.on(GAMEOBJECTEVENTS.DESTROYED, this.onDestroy, this);
+    gameObject.on(GAMEOBJECTEVENTS.DESTROYED, () => this.onDestroy());
     scene.add.existing(this);
+    this.drawBar();
   }
 
   /**
@@ -62,10 +62,10 @@ export class Healthbar extends GameObjects.Graphics {
   setValue(percentage) {
     //scale the bar
     this.percentage = percentage;
-    if (this.percentage < .3) {
+    if (this.percentage < .4) {
       return this.drawBar(COLORS.RED);
     }
-    if (this.percentage < .5) {
+    if (this.percentage < .6) {
       return this.drawBar(COLORS.YELLOW);
     }
     return this.drawBar(COLORS.GREEN);
@@ -76,14 +76,13 @@ export class Healthbar extends GameObjects.Graphics {
     this.options.opacity = opacity;
     this.clear();
 
-    let currentX = this.scaleX;
     // this.scaleX = 1
     this.fillStyle(this.options.backgroundColor, this.options.backgroundOpacity);
     this.fillRect(0, 0, this.width, this.height);
 
     // this.scaleX = currentX
     this.fillStyle(this.options.foregroundColor, this.options.opacity);
-    this.fillRect(2, 2, Mathf.clamp((this.width * this.percentage - 4), 0, this.width), this.height - 4);
+    this.fillRect(2, 2, Mathf.clamp((this.width * this.percentage), 0, this.width), this.height - 4);
   }
 
   update() {
@@ -97,12 +96,20 @@ export class Healthbar extends GameObjects.Graphics {
   }
 
   setText(text = "") {
+    if (!this.text) { return }
     this.text.setText(text);
   }
 
   onDestroy() {
-    this.text.destroy();
-    this.destroy();
+    try {
+      this.clear()
+      this.destroy(true);
+      this.text.destroy(true);
+    } catch (e) {
+      console.log(e)
+    } finally {
+      this.text = null
+    }
   }
 
 }

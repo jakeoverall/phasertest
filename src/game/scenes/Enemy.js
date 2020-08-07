@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { floatingNumbers, PLAYER } from "./Enchanter";
+import { PLAYER } from "./Enchanter";
 import { GameObject } from "./GameObject";
 import { Healthbar } from "./Healthbar";
 import { Mathf } from "./Mathf";
@@ -34,7 +34,6 @@ export class Enemy extends GameObject {
     this.setAnimation(this.defaultAnimation);
     this.healthBar = new Healthbar(scene, this);
     this.renderable = this.sprite;
-    this.sprite.on("update", this.update);
     this.active = true;
   }
 
@@ -49,32 +48,10 @@ export class Enemy extends GameObject {
   onDamage() {
     if (!this.active) { return; }
     this.health = Mathf.clamp(this.health - PLAYER.ATTACKSTRENGTH, 0, this.maxHealth);
-    floatingNumbers.createFloatingText({
-      textOptions: {
-        fontFamily: 'shrewsbury',
-        fontSize: 32,
-        color: "#ff0000",
-        strokeThickness: 2,
-        fontWeight: "bold",
-        stroke: "#000000",
-        shadow: {
-          offsetX: 0,
-          offsetY: 0,
-          color: '#000',
-          blur: 4,
-          stroke: true,
-          fill: false
-        }
-      },
-      text: PLAYER.ATTACKSTRENGTH,
-      align: "top-center",
-      parentObject: this.sprite,
-      animation: "smoke",
-      animationEase: "Linear"
-    });
     this.healthBar.setValue(this.health / this.maxHealth);
     this.healthBar.setText(`${this.health}/${this.maxHealth}`);
     if (this.dead) {
+      this.sprite.destroy(true)
       this.destroy(350);
     }
   }

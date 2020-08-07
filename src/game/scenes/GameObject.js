@@ -21,11 +21,11 @@ export class GameObject extends EventEmitter {
   }
 
   destroy(delay = 0) {
-    this.active = false;
     setTimeout(() => {
+      this.emit(GAMEOBJECTEVENTS.DESTROYED, this);
       if (this.renderable) {
+        this.active = false;
         this.renderable.destroy();
-        this.emit(GAMEOBJECTEVENTS.DESTROYED, this);
       }
     }, delay);
   }
