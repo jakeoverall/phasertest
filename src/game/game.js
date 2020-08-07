@@ -1,25 +1,24 @@
-import Phaser from 'phaser'
-import BootScene from './scenes/BootScene'
-import PlayScene from './scenes/PlayScene'
-import TestScene from './scenes/TestScene';
+import Phaser from 'phaser';
+import Enchanter from './scenes/Enchanter';
 
 
 function launch(containerId) {
+
     return new Phaser.Game({
         type: Phaser.AUTO,
-        width: 800,
-        height: 600,
         parent: containerId,
-        physics: {
-            default: 'arcade',
-            arcade: {
-                gravity: { y: 300 },
-                debug: false
-            }
+        disableContextMenu: true,
+        scale: {
+            // mode: Phaser.Scale.FIT,
+            // parent: containerId,
+            autoCenter: Phaser.Scale.CENTER_BOTH,
+            width: 1068,
+            height: 600
         },
-        scene: [BootScene, PlayScene, TestScene]
+        scene: [Enchanter]
     })
 }
 
 export default launch
-export { launch }
+export { launch };
+
