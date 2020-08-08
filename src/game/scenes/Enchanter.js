@@ -3,11 +3,15 @@ import beeTexture from '../assets/bee.png';
 import bg1Texture from '../assets/bg-1.png';
 import bg2Texture from '../assets/bg-2.png';
 import groundTexture from '../assets/ground.png';
+import tilemapTexture from '../assets/tiled/cobbleset-64.png';
 import { FloatingNumbersPlugin } from "../plugins/FloatingNumbersPlugin";
 import { Enemy } from "./Enemy";
 import { ENV } from "./ENV";
 import { GAMEOBJECTEVENTS } from "./GAMEOBJECTEVENTS";
 import { Mathf } from "./Mathf";
+
+
+
 
 function $log() {
   if (ENV.DEBUG) {
@@ -38,6 +42,8 @@ export default class Enchanter extends Scene {
     this.load.image("bg_1", bg1Texture);
     this.load.image("bg_2", bg2Texture);
     this.load.image("ground", groundTexture);
+    this.load.image("mapTexture", tilemapTexture);
+    this.load.tilemapTiledJSON('mapJSON', 'tile-test.json')
     // load spritesheet
     this.load.spritesheet("bee", beeTexture, {
       frameWidth: 37,
@@ -51,23 +57,30 @@ export default class Enchanter extends Scene {
     let h = 600
     window.stage = this
     // this.cameras.main.setBounds(0, 0, w, h);
-    this.bg_1 = this.add.tileSprite(0, 0, w, h, "bg_1");
-    // Set its pivot to the top left corner
-    this.bg_1.setOrigin(0, 0);
-    // fix it so it won't move when the camera moves.
-    // Instead we are moving its texture on the update
-    this.bg_1.setScrollFactor(0);
+    // this.bg_1 = this.add.tileSprite(0, 0, w, h, "bg_1");
+    // // Set its pivot to the top left corner
+    // this.bg_1.setOrigin(0, 0);
+    // // fix it so it won't move when the camera moves.
+    // // Instead we are moving its texture on the update
+    // this.bg_1.setScrollFactor(0);
 
-    // Add a second background layer. Repeat as in bg_1
-    this.bg_2 = this.add.tileSprite(0, 0, w, h, "bg_2");
-    this.bg_2.setOrigin(0, 0);
-    this.bg_2.setScrollFactor(0);
+    // // Add a second background layer. Repeat as in bg_1
+    // this.bg_2 = this.add.tileSprite(0, 0, w, h, "bg_2");
+    // this.bg_2.setOrigin(0, 0);
+    // this.bg_2.setScrollFactor(0);
 
-    // add the ground layer which is only 48 pixels tall
-    this.ground = this.add.tileSprite(0, 0, w, 48, "ground");
-    this.ground.setOrigin(0, 0);
-    this.ground.setScrollFactor(0);
-    this.ground.y = 400;
+    // // add the ground layer which is only 48 pixels tall
+    // this.ground = this.add.tileSprite(0, 0, w, 48, "ground");
+    // this.ground.setOrigin(0, 0);
+    // this.ground.setScrollFactor(0);
+    // this.ground.y = 400;
+    // const backgroundImage = this.add.image(0, 0, 'bg_1').setOrigin(0, 0);
+    // backgroundImage.setScale(2, 0.8);
+    this.map = this.make.tilemap({ key: 'mapJSON' })
+    const tileset = this.map.addTilesetImage('cobbleset-64', 'mapTexture');
+    const platforms = this.map.createStaticLayer('ground', tileset, 0, 0);
+
+
 
     // add player
     // this.bee = this.add.sprite(w * 1.5, h / 2, "bee");
@@ -97,9 +110,9 @@ export default class Enchanter extends Scene {
   }
 
   update() {
-    this.bg_1.tilePositionX = this.mainCam.scrollX * .3;
-    this.bg_2.tilePositionX = this.mainCam.scrollX * .6;
-    this.ground.tilePositionX = this.mainCam.scrollX;
+    // this.bg_1.tilePositionX = this.mainCam.scrollX * .3;
+    // this.bg_2.tilePositionX = this.mainCam.scrollX * .6;
+    // this.ground.tilePositionX = this.mainCam.scrollX;
 
     for (let i = 0; i < this.enemyManager.enemies.length; i++) {
       try {
@@ -111,9 +124,6 @@ export default class Enchanter extends Scene {
     }
 
   }
-
-
-
 }
 var s = 1
 class EnemyManager {
